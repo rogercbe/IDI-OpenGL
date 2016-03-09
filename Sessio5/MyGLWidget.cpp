@@ -1,7 +1,7 @@
 #include <GL/glew.h>
 #include "MyGLWidget.h"
-
 #include <iostream>
+using namespace std;
 
 MyGLWidget::MyGLWidget (QGLFormat &f, QWidget* parent) : QGLWidget(f, parent)
 {
@@ -20,7 +20,7 @@ void MyGLWidget::initializeGL ()
   glClearColor(0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   carregaShaders();
   createBuffers();
-  modelTransform ();
+  //modelTransform2 ();
   projectTransform();
   viewTransform();
 
@@ -31,38 +31,62 @@ void MyGLWidget::initializeGL ()
 
 void MyGLWidget::paintGL () 
 {
+      glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Activem el VAO per a pintar la terra
+    glBindVertexArray (VAO_Terra);
+
+    modelTransformTerra ();
+
+
+    // pintem
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // Esborrem el frame-buffer
-  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
   // Activem el VAO per a pintar el homer
   glBindVertexArray (VAO_Homer);
+  
+    //Rotar només homer
+  modelTransformPatricio();
 
   // pintem
   glDrawArrays(GL_TRIANGLES, 0, m.faces().size() * 3);
-  
 
-  // Activem el VAO per a pintar la terra
-  glBindVertexArray (VAO_Terra);
 
-  // pintem
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 
   glBindVertexArray (0);
 }
 
-void MyGLWidget::modelTransform () 
+void MyGLWidget::modelTransformPatricio ()
 {
-  // Matriu de transformació de model
-  glm::mat4 transform = glm::scale(glm::mat4(1.0f), glm::vec3(scale));
-  transform = glm::rotate(transform, rotate, glm::vec3(0.,1.,0.));
-  glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
+  glm::mat4 TG;  // Matriu de transformació
+  //TG = glm::scale(TG, glm::vec3(escala, escala, escala));
+  TG = glm::rotate(TG, rotate, glm::vec3(0,1,0));
+
+  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
+}
+
+void MyGLWidget::modelTransformTerra ()
+{
+  glm::mat4 TG;  // Matriu de transformació
+  TG = glm::mat4(1.f);
+  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
 }
 
 void MyGLWidget::resizeGL (int w, int h) 
 {
-  
-  glViewport(0, 0, w, h);
+  if(w > h) {
+    //x, y, w, h
+    float x = (w-h)/2;
+    glViewport(x, 0, h, h);
+  } else {
+    float y = (h-w)/2;
+    glViewport(0, y, w, w);
+  }
+
 }
 
 void MyGLWidget::keyPressEvent(QKeyEvent* event) 
@@ -72,19 +96,16 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
       exit(0);
     case Qt::Key_S: { // escalar a més gran
       scale += 0.05;
-      modelTransform ();
       updateGL();
       break;
     }
     case Qt::Key_D: { // escalar a més petit
       scale -= 0.05;
-      modelTransform ();
       updateGL();
       break;
     }
     case Qt::Key_R: { // rotar 45º
-      rotate += (M_PI/4);
-      modelTransform ();
+      rotate += M_PI/4;
       updateGL();
       break;
     }

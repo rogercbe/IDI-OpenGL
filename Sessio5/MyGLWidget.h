@@ -27,9 +27,12 @@ class MyGLWidget : public QGLWidget {
   private:
     void createBuffers ();
     void carregaShaders ();
-    void modelTransform ();
+
+    void homerTransform ();
     void projectTransform ();
     void viewTransform ();
+    void modelTransformPatricio();
+    void modelTransformTerra();
 
     // attribute locations
     GLuint vertexLoc, colorLoc;
@@ -48,7 +51,7 @@ class MyGLWidget : public QGLWidget {
     float scale;
     float rotate;
     glm::vec3 pos;
-    
+
     Model m;
 };
 
